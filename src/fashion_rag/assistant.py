@@ -14,12 +14,12 @@ class FashionAssistant:
         self.openai_client = openai_client or get_openai_client(settings)
         self.model_name = settings.model_name
         self.chat_history = []
-        
+
         # Load filters from DataFrame(to be used for routing)
         self.categories = df['category'].dropna().unique().tolist()
         self.product_categories = df['product_category'].dropna().str.strip().unique().tolist()
         self.sub_categories = df['sub_category'].dropna().unique().tolist()
-        
+
         # File path for website info
         self.website_info_path = settings.website_info_path
 
@@ -42,7 +42,7 @@ class FashionAssistant:
         recent = self.get_recent_history(n)
         if not recent:
             return ""
-        
+
         formatted = "\nRecent conversation history:\n"
         for msg in recent:
             formatted += f"{msg['role'].capitalize()}: {msg['content']}\n"
@@ -52,45 +52,45 @@ class FashionAssistant:
         """Clear the chat history"""
         self.chat_history = []
 
-    
+
 
 
     # main language model function
     def _generate_llm_response(self, prompt, system_msg=None):
         """Enhanced LLM response generator with conversation history"""
-        
+
         context = self.format_history_for_context()
-        
+
         messages = [
             {"role": "system", "content": system_msg or "You're a helpful fashion assistant."}
         ]
-        
+
         if context:
             messages.append({
                 "role": "system",
                 "content": f"Here is the recent conversation context:\n{context}"
             })
-        
+
         messages.append({"role": "user", "content": prompt})
-        
+
         response = self.openai_client.chat.completions.create(
             model=self.model_name,
             messages=messages,
             temperature=0.7,
             max_tokens=2000
         )
-        
+
         response_content = response.choices[0].message.content
-        
+
         # Add the interaction to chat history
         self.add_to_history('user', prompt)
         self.add_to_history('assistant', response_content)
-        
+
         return response_content
 
-    
 
-    
+
+
     #parser function fto generate filters
     def _parse_query_filters(self, query):
         """Use DataFrame-derived filters to extract category, sub_category, and product_category from the query."""
@@ -100,7 +100,7 @@ class FashionAssistant:
         product_categories_lower = [pc.lower() for pc in self.product_categories]
 
         filters = {}
-        
+
         # Combine all known categories, sub-categories, and product categories into a single list
         all_categories = categories_lower + sub_categories_lower + product_categories_lower
 
@@ -121,8 +121,8 @@ class FashionAssistant:
                     filters['product_category'] = self.product_categories[idx]
 
         return filters
-    
-    
+
+
     # initiates database client to fetch data based on query
     def _retrieve_from_weaviate(self, query, num_results=5, max_distance=0.5): #adjust the max distance accordingly
         """Weaviate retrieval with enhanced filtering and LLM response generation"""
@@ -131,12 +131,12 @@ class FashionAssistant:
             # Get filters from query
             filters = self._parse_query_filters(query)
             logger.debug("Filters: %s", filters)
-            
+
             if filters:
 
                 # Build base query
                 query_builder = self.weaviate_client.query.get(
-                    "Product", 
+                    "Product",
                     ["title", "pid", "product_category", "category", "sub_category","product_details"]
                 ).with_hybrid(query=query, alpha=0.5)
                 ## alpha=1 pure semantic, alpha=1 pure keywords search
@@ -144,27 +144,27 @@ class FashionAssistant:
                 #.with_near_text({"concepts": [query]}) > semantic search only
                 #with_bm25(query="comfortable summer dresses")> key word only
 
-                
+
                 response = query_builder.with_limit(num_results).do()
                 logger.debug("Weaviate response: %s", response)
 
                 # Check if the response contains products
                 if response and "data" in response and "Get" in response["data"]:
                     products = response["data"]["Get"].get("Product", [])
-            
-                    #debugging 
+
+                    #debugging
                     logger.debug("Found %d products", len(products))
-                    
-                    
+
+
                     # Generate product list for the prompt
                     product_list = "\n".join(
                     f"{idx+1}. ID: {p['pid']} - TITLE: {p['title']}\n   PRODUCT CATEGORY: {p['product_category']} \n PRODUCT DETAILS {p['product_details']}"
                     for idx, p in enumerate(products)
                     )
-                    
+
                     # debug
                     logger.debug("%s", product_list)
-                    
+
                     prompt = f"""
                     Found {len(products)} products matching your query.
                     Create a friendly response mentioning relevant items.
@@ -195,16 +195,16 @@ class FashionAssistant:
                 no_product_prompt = """No product found matching the user query. Kindly offer searching for different products"""
                 llm_response = self._generate_llm_response(no_product_prompt)
                 return llm_response
-            
+
             else: return self.answer_product_questions(query)
 
-            
-            
+
+
         except Exception:
             logger.exception("Weaviate error")
             return "Sorry, I encountered an error while searching for products. Please try again."
-    
-    
+
+
     def answer_product_questions(self, query):
         """
         Use LLM to answer questions about the types of products available on the e-commerce website.
@@ -231,7 +231,7 @@ class FashionAssistant:
         return response
 
 
-    # helper function for the below llm 
+    # helper function for the below llm
     def _load_website_info(self):
         """Load website info from the file."""
         try:
@@ -243,7 +243,7 @@ class FashionAssistant:
         except Exception:
             logger.exception("Error loading website info")
             return ""
-    
+
     # uses Fashionista_Websito_Info dummy txt file. If the information not provided, instructed to answer kindly.
     def handle_website_question(self, query):
         """Answer using website info document."""
@@ -264,13 +264,13 @@ class FashionAssistant:
         2. If the information is not available, say "I don't have this information at the moment, but you can check the official website for more details."
         3. Keep your response concise and relevant.
         """
-        
+
         return self._generate_llm_response(prompt)
-    
+
     # built to greet and interact with user if any irrelant queries have been sent
     def handle_natural_conversation(self, query):
         """Answer user queries, handle greetings, and manage irrelevant questions."""
-        
+
         prompt = f"""
         You are a helpful assistant for an online fashion store. Your role is to assist users with questions related to the website, available products, or store information. Follow these rules:
 
@@ -287,7 +287,7 @@ class FashionAssistant:
     def classify_intent(self, query):
         """Classify user intent into one of three categories"""
         prompt = f"""Classify this fashion e-commerce query:
-        Options: 
+        Options:
         - product_search (looking for specific items)
         - product_question (about products/types)
         - website_question (about company/policies/refunds/orders)
@@ -295,7 +295,7 @@ class FashionAssistant:
 
         Query: {query}
         Classification:"""
-        
+
         response = self.openai_client.chat.completions.create(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
@@ -308,7 +308,7 @@ class FashionAssistant:
     def process_query(self, query):
         """Main processing pipeline"""
         intent = self.classify_intent(query)
-        
+
         if "product_search" in intent:
             return self._retrieve_from_weaviate(query)
         elif "product_question" in intent:

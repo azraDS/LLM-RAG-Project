@@ -7,6 +7,7 @@ name = "fashion-rag"
 version = "0.1.0"
 description = "RAG-powered fashion store assistant (Streamlit + Weaviate + OpenAI)"
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = [
     "streamlit>=1.41,<2",
@@ -17,7 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest>=8", "ruff>=0.6", "pre-commit>=3.7"]
 # notebooks/data_analysis.ipynb
 notebooks = [
     "jupyter>=1.0",

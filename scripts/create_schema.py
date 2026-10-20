@@ -35,7 +35,7 @@ schema = {
                     "description": "Detailed description of the product",
                     "moduleConfig": {
                         "text2vec-openai": {
-                            "skip": True  
+                            "skip": True
                         }
                     }
                 },

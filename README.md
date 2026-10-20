@@ -72,7 +72,13 @@ All settings are environment variables (see `.env.example`). Only `OPENAI_API_KE
 make test     # pytest — no network or API key needed
 make lint     # ruff
 ```
-CI runs both on every push.
+CI runs both on every push. Optional: `pre-commit install` enables local hooks (secret scan with gitleaks, ruff, large-file guard).
+
+## Limitations & roadmap
+Typo/plural handling, multi-word category matching, "show more" pagination, attribute filters (colour, price, brand) and open-source model options are discussed in [docs/DESIGN.md](docs/DESIGN.md#issues-and-trade-offs-found-during-development).
+
+## License
+MIT — see [LICENSE](LICENSE).
 
 ## Deploying to EC2
 Install Docker + the compose plugin, clone the repo, create `.env`, run `docker-compose up -d --build`, restore or rebuild the index (above), and open port 8501 in the security group. Put a reverse proxy (Caddy/nginx) with HTTPS in front before sharing it publicly, since the app spends your OpenAI credits.

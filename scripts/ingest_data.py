@@ -1,6 +1,6 @@
 import json
 import time
-import uuid  
+import uuid
 
 from fashion_rag.clients import get_weaviate_client
 from fashion_rag.config import PROJECT_ROOT, settings
@@ -19,7 +19,7 @@ with open(modified_data_path, "r") as f:
 
 # Add a UUID to each product(tp prevent duplicate embedings)
 for product in data:
-    product["uuid"] = str(uuid.uuid4()) 
+    product["uuid"] = str(uuid.uuid4())
 
 # Retry mechanism for data ingestion
 def create_product_with_retry(product, retries=3, delay=2):
@@ -41,7 +41,7 @@ def create_product_with_retry(product, retries=3, delay=2):
     raise Exception(f"All retry attempts failed for product {product['pid']}")
 
 # Batch data ingestion
-batch_size = 50  
+batch_size = 50
 delay = 2  # Delay in seconds between batches
 total_products = len(data)
 start_time = time.time()

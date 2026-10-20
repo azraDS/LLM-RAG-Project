@@ -27,11 +27,11 @@ def main():
         df = load_data()
         if 'assistant' not in st.session_state:
             st.session_state.assistant = FashionAssistant(df)
-            
+
     except Exception as e:
         st.error(f"Error initializing Fashion Assistant: {str(e)}")
         return
-    
+
     # Chat interface
     with st.container():
         # Display chat history
@@ -40,9 +40,9 @@ def main():
                 st.markdown(message["content"])
                 if "intent" in message:
                     st.write(f"🎯 *Intent: {message['intent']}*")
-                
 
-                
+
+
 
         # User input
         if prompt := st.chat_input("What would you like to know about our fashion products?"):
@@ -72,7 +72,7 @@ def main():
                             "intent": "error"
                         })
 
-   
+
     with st.sidebar:
         st.header("Available Categories")
 
@@ -89,7 +89,7 @@ def main():
         if st.session_state.assistant.product_categories:
             st.write(", ".join(st.session_state.assistant.product_categories))
 
-        
+
 
         # Clear chat button
         if st.button("Clear Chat"):

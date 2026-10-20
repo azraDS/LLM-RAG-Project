@@ -8,7 +8,7 @@ def retrieve_from_weaviate(query, num_results=5):
             .with_near_text({"concepts": [query]}) \
             .with_limit(num_results) \
             .do()
-        
+
         # Debugging the response to ensure we are getting the expected data
         if response and 'data' in response and 'Get' in response['data']:
             results = response['data']['Get'].get('Product', [])
@@ -17,7 +17,7 @@ def retrieve_from_weaviate(query, num_results=5):
             return []
 
         return results
-    
+
     except Exception as e:
         print(f"Error during Weaviate query: {e}")
         return []
@@ -30,7 +30,7 @@ results = retrieve_from_weaviate(query)
 if not results:
     print("No results returned from Weaviate.")
 else:
-   
+
     for res in results:
         print(f"Title: {res.get('title', 'N/A')}")
         print(f"Category: {res.get('category', 'N/A')}")
@@ -38,21 +38,3 @@ else:
         print(f"product_category: {res.get('product_category', 'N/A')}")
         print(f"Product id: {res.get('pid', 'N/A')}")
         print("-" * 50)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
