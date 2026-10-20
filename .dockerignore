@@ -1,0 +1,10 @@
+.git
+.env
+.venv*/
+venv/
+env/
+weaviate_data/
+notebooks/
+**/__pycache__/
+*.egg-info
+.DS_Store

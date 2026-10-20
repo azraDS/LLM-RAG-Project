@@ -1,0 +1,38 @@
+services:
+  weaviate:
+    image: semitechnologies/weaviate:1.23.7
+    container_name: weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      ENABLE_MODULES: 'text2vec-openai'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - ./weaviate_data:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: fashion-app
+    ports:
+      - "${APP_PORT:-8501}:8501"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MODEL_NAME: ${MODEL_NAME:-gpt-3.5-turbo}
+      WEAVIATE_URL: http://weaviate:8080   # service name, not localhost, inside Compose
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      weaviate:
+        condition: service_healthy
+    restart: unless-stopped
