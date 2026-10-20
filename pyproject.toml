@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fashion-rag"
+version = "0.1.0"
+description = "RAG-powered fashion store assistant (Streamlit + Weaviate + OpenAI)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.41,<2",
+    "openai>=1.60,<2",
+    "weaviate-client>=3.26,<4",  # code uses the v3 API (weaviate.Client)
+    "pandas>=2.2",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+# notebooks/data_analysis.ipynb
+notebooks = [
+    "jupyter>=1.0",
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "sentence-transformers>=3.0",
+    "spacy>=3.7",
+]
+# notebooks/fine_tunning.ipynb (heavy; designed for a GPU runtime such as Kaggle)
+finetune = ["torch>=2.2", "transformers>=4.40", "datasets>=2.19", "evaluate>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["notebooks", "venv", ".venv*"]
