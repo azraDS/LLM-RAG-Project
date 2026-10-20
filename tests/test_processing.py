@@ -1,3 +1,5 @@
+import pytest
+
 from fashion_rag.config import settings
 from fashion_rag.data import read_jsonl
 from fashion_rag.processing import flatten_product_details, process_products
@@ -24,7 +26,11 @@ def test_process_products_does_not_mutate_input_and_handles_missing_details():
     assert original[0]["product_details"] == [{"Color": "Red"}]
 
 
-def test_pipeline_reproduces_committed_dataset():
-    """Golden test: raw data run through the pipeline must equal the ingested file."""
+@pytest.mark.skipif(
+    not settings.modified_data_path.exists(),
+    reason="processed dataset not present (run scripts/process_data.py)",
+)
+def test_pipeline_reproduces_processed_dataset():
+    """Golden test: raw data run through the pipeline must equal the processed file on disk."""
     raw = read_jsonl(settings.raw_data_path)
     assert process_products(raw) == read_jsonl(settings.modified_data_path)
